@@ -1,0 +1,11 @@
+# Pycharm files
+.idea
+# Git
+.git
+.gitignore
+# Env
+.env
+# venv
+venv
+# Readme
+README.md
