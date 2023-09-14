@@ -2,3 +2,5 @@
 .idea
 # Evnironment variables
 .env
+# pycache
+__pycache__/
