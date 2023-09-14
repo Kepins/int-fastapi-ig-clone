@@ -5,4 +5,4 @@ from .routers import status
 
 app = FastAPI()
 
-app.include_router(status.router)
+app.include_router(status.router, prefix="/api")
