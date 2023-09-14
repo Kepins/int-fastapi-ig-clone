@@ -18,7 +18,9 @@ def get_db(settings: Annotated[Settings, Depends(get_settings)]) -> Session:
     try:
         db_session = get_db.sessions[settings.engine_url]
     except KeyError as e:
-        get_db.sessions[settings.engine_url] = scoped_session(sessionmaker(bind=create_engine(settings.engine_url)))
+        get_db.sessions[settings.engine_url] = scoped_session(
+            sessionmaker(bind=create_engine(settings.engine_url))
+        )
         db_session = get_db.sessions[settings.engine_url]
 
     try:
