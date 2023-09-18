@@ -4,7 +4,7 @@ name: "instagram-clone"
 services:
   app:
     build: .
-    command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: bash -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     volumes:
         - .:/home/app/code
     ports:
