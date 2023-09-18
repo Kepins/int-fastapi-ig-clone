@@ -2,16 +2,16 @@ from functools import lru_cache
 
 import pytest
 from fastapi.testclient import TestClient
+from pydantic_settings import BaseSettings
+
+
+class TestSettings(BaseSettings):
+    engine_url: str = "sqlite+pysqlite:///:memory:"
 
 
 @lru_cache
 def settings_test():
-    from app.core.settings import Settings
-
-    settings = Settings()
-
-    settings.engine_url = "sqlite+pysqlite:///:memory:"
-
+    settings = TestSettings()
     return settings
 
 
