@@ -4,9 +4,9 @@ from typing import List
 from sqlalchemy import or_, and_, not_
 from sqlalchemy.orm import Session
 
-from .exceptions import AlreadyExists, NotFound
+from .exceptions import AlreadyExists, NotFound, PasswordNotMatching
 from ..db.models import UserDB
-from ..schemas.user import User, UserCreate
+from ..schemas.user import User, UserCreate, UserResetPassword
 from ..core.security import Hasher
 
 
@@ -52,6 +52,17 @@ def update_user(db: Session, user: User) -> User:
         db.refresh(db_user)
         return User.model_validate(db_user)
     raise NotFound()
+
+
+def reset_password(db: Session, user: User, passwords: UserResetPassword) -> None:
+    db_user = __get_not_deleted_db_user(db, user.id)
+    if not db_user:
+        raise NotFound()
+    if not Hasher.verify_password(passwords.old_password.get_secret_value(), db_user.pass_hash):
+        raise PasswordNotMatching()
+    db_user.pass_hash = Hasher.get_password_hash(passwords.new_password.get_secret_value())
+    db.add(db_user)
+    db.commit()
 
 
 def delete_user_by_id(db: Session, id: int) -> None:

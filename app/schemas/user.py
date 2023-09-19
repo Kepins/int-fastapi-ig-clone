@@ -25,3 +25,8 @@ class User(UserBase):
 class UserLogin(BaseModel):
     nickname: str
     password: SecretStr
+
+
+class UserResetPassword(BaseModel):
+    old_password: SecretStr
+    new_password: SecretStr

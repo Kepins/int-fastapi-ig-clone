@@ -32,4 +32,5 @@ def get_db(settings: Annotated[Settings, Depends(get_settings)]) -> Session:
 
 
 def get_current_user(db: Annotated[Session, Depends(get_db)]):
-    return get_user_by_id(db, 1)
+    # TODO return authenticated user or raise HTTPException if does not exist
+    return get_user_by_id(db, 4)

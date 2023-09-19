@@ -4,3 +4,7 @@ class AlreadyExists(Exception):
 
 class NotFound(Exception):
     pass
+
+
+class PasswordNotMatching(Exception):
+    pass
