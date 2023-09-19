@@ -34,3 +34,14 @@ def get_user_by_id(db: Session, id: int) -> User:
     if db_user := db.get(UserDB, id):
         return User.model_validate(db_user)
     raise NotFound()
+
+
+def update_user(db: Session, user: User) -> User:
+    if db_user := db.get(UserDB, user.id):
+        for field in user.model_dump():
+            setattr(db_user, field, getattr(user, field))
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        return User.model_validate(db_user)
+    raise NotFound()
