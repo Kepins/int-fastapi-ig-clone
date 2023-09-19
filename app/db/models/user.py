@@ -1,3 +1,6 @@
+import datetime
+from typing import Optional
+
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -13,6 +16,8 @@ class UserDB(Base):
     last_name: Mapped[str] = mapped_column(String(100))
     email: Mapped[str] = mapped_column(String(320), unique=True)
     pass_hash: Mapped[str] = mapped_column(String(200))
+    is_deleted: Mapped[bool] = mapped_column(default=False)
+    deletion_date: Mapped[Optional[datetime.datetime]] = mapped_column(default=None)
 
     def __repr__(self) -> str:
         return f"User(id={self.id!r})"
