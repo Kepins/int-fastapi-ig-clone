@@ -32,7 +32,7 @@ def create_user(db: Session, user: UserCreate) -> User:
     pass_hash = Hasher.get_password_hash(user.password.get_secret_value())
     db_user = UserDB(**user.model_dump(exclude={"password"}), pass_hash=pass_hash)
     db.add(db_user)
-    db.commit()
+    db.flush()
     db.refresh(db_user)
     return User.model_validate(db_user)
 
@@ -51,7 +51,7 @@ def update_user(db: Session, user: User) -> User:
     for field in user.model_dump():
         setattr(db_user, field, getattr(user, field))
     db.add(db_user)
-    db.commit()
+    db.flush()
     db.refresh(db_user)
     return User.model_validate(db_user)
 
@@ -68,7 +68,6 @@ def reset_password(db: Session, user: User, passwords: UserResetPassword) -> Non
         passwords.new_password.get_secret_value()
     )
     db.add(db_user)
-    db.commit()
 
 
 def delete_user_by_id(db: Session, id: int) -> None:
@@ -78,4 +77,3 @@ def delete_user_by_id(db: Session, id: int) -> None:
     db_user.is_deleted = True
     db_user.deletion_date = datetime.utcnow()
     db.add(db_user)
-    db.commit()

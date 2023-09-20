@@ -32,4 +32,4 @@ EXPOSE 8000
 CMD bash -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
 FROM base as test
-CMD pytest --no-header --no-summary -q
+CMD pytest # --no-header --no-summary -q

@@ -28,6 +28,7 @@ def get_db(settings: Annotated[Settings, Depends(get_settings)]) -> Session:
         db_session()
         yield db_session
     finally:
+        db_session.commit()
         db_session.remove()
 
 
