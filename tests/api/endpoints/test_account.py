@@ -62,7 +62,7 @@ class TestAccountResetPassword:
 
         r = client.post(app.url_path_for("Reset account password"), json=passwords)
 
-        assert r.status_code == status.HTTP_401_UNAUTHORIZED
+        assert r.status_code == status.HTTP_400_BAD_REQUEST
 
 
 class TestAccountDelete:

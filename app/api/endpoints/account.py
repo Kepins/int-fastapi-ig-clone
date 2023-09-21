@@ -58,7 +58,10 @@ def login(
 @router.post(
     path="/reset_password",
     name="Reset account password",
-    responses={status.HTTP_401_UNAUTHORIZED: {"model": HTTPError}},
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"model": HTTPError},
+        status.HTTP_401_UNAUTHORIZED: {"model": HTTPError},
+    },
 )
 def reset_password(
     passwords: UserResetPassword,
@@ -69,7 +72,7 @@ def reset_password(
         user_service.reset_password(db, user, passwords)
     except PasswordNotMatching as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Password Not Valid"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Password Not Valid"
         )
 
 
