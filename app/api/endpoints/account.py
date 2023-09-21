@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from ...core.dependencies import get_db, get_current_user, get_settings
@@ -79,9 +80,10 @@ def reset_password(
     passwords: UserResetPassword,
     user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-) -> None:
+) -> Response:
     try:
         user_service.reset_password(db, user, passwords)
+        return Response(status_code=status.HTTP_200_OK)
     except PasswordNotMatching as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Password Not Valid"
@@ -97,5 +99,6 @@ def reset_password(
 def delete(
     user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-) -> None:
+) -> Response:
     user_service.delete_user_by_id(db, user.id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
