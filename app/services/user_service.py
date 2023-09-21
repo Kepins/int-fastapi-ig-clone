@@ -44,6 +44,13 @@ def get_user_by_id(db: Session, id: int) -> User:
     return User.model_validate(db_user)
 
 
+def get_user_by_nickname(db: Session, nickname: str) -> User:
+    db_user = db.query(UserDB).where(and_(UserDB.nickname == nickname, not_(UserDB.is_deleted))).first()
+    if not db_user:
+        raise NotFound()
+    return User.model_validate(db_user)
+
+
 def update_user(db: Session, user: User) -> User:
     db_user = __get_not_deleted_db_user(db, user.id)
     if not db_user:
@@ -54,6 +61,15 @@ def update_user(db: Session, user: User) -> User:
     db.flush()
     db.refresh(db_user)
     return User.model_validate(db_user)
+
+
+def verify_password(db: Session, user: User, password: str):
+    db_user = __get_not_deleted_db_user(db, user.id)
+    if not db_user:
+        raise NotFound()
+    if Hasher.verify_password(password, db_user.pass_hash):
+        return True
+    return False
 
 
 def reset_password(db: Session, user: User, passwords: UserResetPassword) -> None:

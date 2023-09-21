@@ -1,13 +1,16 @@
 from typing import Annotated
 
 from fastapi import Depends, status, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from ...core.dependencies import get_db, get_current_user
+from ...core.dependencies import get_db, get_current_user, get_settings
+from ...core.security import create_access_token
+from ...core.settings import Settings
 from ...routers.account import router
 from ...schemas.user import User, UserUpdate, UserResetPassword
 from ...services import user_service
-from ...services.exceptions import PasswordNotMatching
+from ...services.exceptions import PasswordNotMatching, NotFound
 
 
 @router.put(path="", name="Update account")
@@ -21,9 +24,20 @@ def update(
     )
 
 
-@router.post(path="/login", name="Login")
-def login(db: Annotated[Session, Depends(get_db)]):
-    pass
+@router.post(path="/login", name="Login to account")
+def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], settings: Annotated[Settings, Depends(get_settings)], db: Annotated[Session, Depends(get_db)]):
+    nickname = form_data.username
+    password = form_data.password
+
+    httpexception = HTTPException(status_code=400, detail="Incorrect Username Or Password")
+    try:
+        user = user_service.get_user_by_nickname(db, nickname)
+    except NotFound:
+        raise httpexception
+    if not user_service.verify_password(db, user, password):
+        raise httpexception
+
+    return {"access_token": create_access_token(user, settings), "token_type": "bearer"}
 
 
 @router.post(path="/reset_password", name="Reset account password")
