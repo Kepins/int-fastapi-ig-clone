@@ -39,8 +39,3 @@ def app_test():
     app.dependency_overrides[get_db] = get_db_test
     yield app
     app.dependency_overrides = {}
-
-
-@pytest.fixture
-def client(app_test):
-    return TestClient(app_test)

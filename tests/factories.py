@@ -10,7 +10,7 @@ class UserDBFactory(SQLAlchemyModelFactory):
     class Meta:
         model = UserDB
         sqlalchemy_session = db
-        sqlalchemy_session_persistence = 'flush'
+        sqlalchemy_session_persistence = "flush"
         sqlalchemy_get_or_create = (
             "nickname",
             "email",
