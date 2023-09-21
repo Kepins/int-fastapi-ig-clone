@@ -45,6 +45,19 @@ class TestAccountResetPassword:
 
         assert r.status_code == status.HTTP_200_OK
 
+    def test_invalid_old_password(self, app_test):
+        user = UserDBFactory(pass_hash=Hasher.get_password_hash("password123"))
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(user)
+        client = TestClient(app_test)
+        passwords = {
+            "old_password": "password1234",
+            "new_password": " Password1234",
+        }
+
+        r = client.post(app.url_path_for("Reset account password"), json=passwords)
+
+        assert r.status_code == status.HTTP_401_UNAUTHORIZED
+
 
 class TestAccountDelete:
     def test_delete(self, app_test):
