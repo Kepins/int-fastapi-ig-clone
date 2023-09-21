@@ -45,7 +45,11 @@ def get_user_by_id(db: Session, id: int) -> User:
 
 
 def get_user_by_nickname(db: Session, nickname: str) -> User:
-    db_user = db.query(UserDB).where(and_(UserDB.nickname == nickname, not_(UserDB.is_deleted))).first()
+    db_user = (
+        db.query(UserDB)
+        .where(and_(UserDB.nickname == nickname, not_(UserDB.is_deleted)))
+        .first()
+    )
     if not db_user:
         raise NotFound()
     return User.model_validate(db_user)

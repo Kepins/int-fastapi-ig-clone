@@ -8,12 +8,17 @@ from ...core.dependencies import get_db, get_current_user, get_settings
 from ...core.security import create_access_token
 from ...core.settings import Settings
 from ...routers.account import router
+from ...schemas.shared import HTTPError
 from ...schemas.user import User, UserUpdate, UserResetPassword
 from ...services import user_service
 from ...services.exceptions import PasswordNotMatching, NotFound
 
 
-@router.put(path="", name="Update account")
+@router.put(
+    path="",
+    name="Update account",
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": HTTPError}},
+)
 def update(
     new_user: UserUpdate,
     user: Annotated[User, Depends(get_current_user)],
@@ -24,12 +29,22 @@ def update(
     )
 
 
-@router.post(path="/login", name="Login to account")
-def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], settings: Annotated[Settings, Depends(get_settings)], db: Annotated[Session, Depends(get_db)]):
+@router.post(
+    path="/login",
+    name="Login to account",
+    responses={status.HTTP_400_BAD_REQUEST: {"model": HTTPError}},
+)
+def login(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    settings: Annotated[Settings, Depends(get_settings)],
+    db: Annotated[Session, Depends(get_db)],
+):
     nickname = form_data.username
     password = form_data.password
 
-    httpexception = HTTPException(status_code=400, detail="Incorrect Username Or Password")
+    httpexception = HTTPException(
+        status_code=400, detail="Incorrect Username Or Password"
+    )
     try:
         user = user_service.get_user_by_nickname(db, nickname)
     except NotFound:
@@ -40,7 +55,11 @@ def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], settings: 
     return {"access_token": create_access_token(user, settings), "token_type": "bearer"}
 
 
-@router.post(path="/reset_password", name="Reset account password")
+@router.post(
+    path="/reset_password",
+    name="Reset account password",
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": HTTPError}},
+)
 def reset_password(
     passwords: UserResetPassword,
     user: Annotated[User, Depends(get_current_user)],
@@ -54,7 +73,12 @@ def reset_password(
         )
 
 
-@router.delete(path="", name="Delete account", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    path="",
+    name="Delete account",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": HTTPError}},
+)
 def delete(
     user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
