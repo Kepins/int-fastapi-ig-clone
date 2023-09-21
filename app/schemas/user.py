@@ -1,7 +1,7 @@
-from pydantic import BaseModel, SecretStr, EmailStr, ConfigDict
+from pydantic import BaseModel, SecretStr, EmailStr, ConfigDict, Extra
 
 
-class UserBase(BaseModel):
+class UserBase(BaseModel, extra=Extra.forbid):
     first_name: str
     last_name: str
 
@@ -22,11 +22,11 @@ class User(UserBase):
     nickname: str
 
 
-class UserLogin(BaseModel):
+class UserLogin(BaseModel, extra=Extra.forbid):
     nickname: str
     password: SecretStr
 
 
-class UserResetPassword(BaseModel):
+class UserResetPassword(BaseModel, extra=Extra.forbid):
     old_password: SecretStr
     new_password: SecretStr

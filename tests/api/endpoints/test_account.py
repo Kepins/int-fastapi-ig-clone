@@ -11,7 +11,9 @@ from tests.factories import UserDBFactory
 class TestAccountUpdate:
     def test_update(self, app_test):
         user = UserDBFactory()
-        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(user)
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
+            user
+        )
         client = TestClient(app_test)
         new_data = {
             "first_name": "Jacek",
@@ -34,7 +36,9 @@ class TestAccountLogin:
 class TestAccountResetPassword:
     def test_reset_password(self, app_test):
         user = UserDBFactory(pass_hash=Hasher.get_password_hash("password123"))
-        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(user)
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
+            user
+        )
         client = TestClient(app_test)
         passwords = {
             "old_password": "password123",
@@ -47,7 +51,9 @@ class TestAccountResetPassword:
 
     def test_invalid_old_password(self, app_test):
         user = UserDBFactory(pass_hash=Hasher.get_password_hash("password123"))
-        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(user)
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
+            user
+        )
         client = TestClient(app_test)
         passwords = {
             "old_password": "password1234",
@@ -62,7 +68,9 @@ class TestAccountResetPassword:
 class TestAccountDelete:
     def test_delete(self, app_test):
         user = UserDBFactory()
-        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(user)
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
+            user
+        )
         client = TestClient(app_test)
 
         r = client.delete(app.url_path_for("Delete account"))
