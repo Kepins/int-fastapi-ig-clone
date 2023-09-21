@@ -14,6 +14,18 @@ from ...services import user_service
 from ...services.exceptions import PasswordNotMatching, NotFound
 
 
+@router.get(
+    "",
+    name="Get account info",
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": HTTPError}},
+)
+def account_info(
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> User:
+    return user
+
+
 @router.put(
     path="",
     name="Update account",
