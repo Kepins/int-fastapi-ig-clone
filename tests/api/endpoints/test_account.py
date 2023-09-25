@@ -42,7 +42,30 @@ class TestAccountUpdate:
 
 class TestAccountLogin:
     def test_login(self, app_test):
-        pass
+        user = UserDBFactory(pass_hash=Hasher.get_password_hash("password123"))
+
+        client = TestClient(app_test)
+        form_data = {
+            "username": user.nickname,
+            "password": "password123"
+        }
+        r = client.post(app.url_path_for("Login to account"), data=form_data)
+
+        assert r.status_code == status.HTTP_200_OK
+        assert "access_token" in r.json()
+
+    def test_wrong_password_login(self, app_test):
+        user = UserDBFactory(pass_hash=Hasher.get_password_hash("password123"))
+
+        client = TestClient(app_test)
+        form_data = {
+            "username": user.nickname,
+            "password": "password124"
+        }
+        r = client.post(app.url_path_for("Login to account"), data=form_data)
+
+        assert r.status_code == status.HTTP_400_BAD_REQUEST
+        assert "access_token" not in r.json()
 
 
 class TestAccountResetPassword:
