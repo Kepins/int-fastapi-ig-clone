@@ -6,6 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from .settings import Settings
+from ..services.user_service import get_user_by_id
 
 
 @lru_cache
@@ -27,4 +28,10 @@ def get_db(settings: Annotated[Settings, Depends(get_settings)]) -> Session:
         db_session()
         yield db_session
     finally:
+        db_session.commit()
         db_session.remove()
+
+
+def get_current_user(db: Annotated[Session, Depends(get_db)]):
+    # TODO return authenticated user or raise HTTPException if does not exist
+    return get_user_by_id(db, 1)

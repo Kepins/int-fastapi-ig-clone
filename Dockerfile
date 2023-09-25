@@ -1,5 +1,5 @@
 # Pull base image
-FROM python:3.11.4-bookworm
+FROM python:3.11.4-bookworm as base
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -27,4 +27,9 @@ RUN chown -R app /home/app
 # Switch to the app user
 USER app
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+FROM base as development
+EXPOSE 8000
+CMD bash -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+FROM base as test
+CMD pytest # --no-header --no-summary -q
