@@ -27,10 +27,45 @@ class TestAccountUpdate:
         assert r.json()["first_name"] == new_data["first_name"]
         assert r.json()["last_name"] == new_data["last_name"]
 
+    def test_unauthenticated(self, app_test):
+        client = TestClient(app_test)
+        new_data = {
+            "first_name": "Jacek",
+            "last_name": " Kowalski",
+        }
+
+        r = client.put(app.url_path_for("Update account"), json=new_data)
+
+        # Test response
+        assert r.status_code == status.HTTP_401_UNAUTHORIZED
+
 
 class TestAccountLogin:
     def test_login(self, app_test):
-        pass
+        user = UserDBFactory(pass_hash=Hasher.get_password_hash("password123"))
+
+        client = TestClient(app_test)
+        form_data = {
+            "username": user.nickname,
+            "password": "password123"
+        }
+        r = client.post(app.url_path_for("Login to account"), data=form_data)
+
+        assert r.status_code == status.HTTP_200_OK
+        assert "access_token" in r.json()
+
+    def test_wrong_password_login(self, app_test):
+        user = UserDBFactory(pass_hash=Hasher.get_password_hash("password123"))
+
+        client = TestClient(app_test)
+        form_data = {
+            "username": user.nickname,
+            "password": "password124"
+        }
+        r = client.post(app.url_path_for("Login to account"), data=form_data)
+
+        assert r.status_code == status.HTTP_400_BAD_REQUEST
+        assert "access_token" not in r.json()
 
 
 class TestAccountResetPassword:
@@ -62,6 +97,17 @@ class TestAccountResetPassword:
 
         r = client.post(app.url_path_for("Reset account password"), json=passwords)
 
+        assert r.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_unauthenticated(self, app_test):
+        client = TestClient(app_test)
+        passwords = {
+            "old_password": "password1234",
+            "new_password": " Password1234",
+        }
+
+        r = client.post(app.url_path_for("Reset account password"), json=passwords)
+
         assert r.status_code == status.HTTP_401_UNAUTHORIZED
 
 
@@ -76,3 +122,10 @@ class TestAccountDelete:
         r = client.delete(app.url_path_for("Delete account"))
 
         assert r.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_unauthenticated(self, app_test):
+        client = TestClient(app_test)
+
+        r = client.delete(app.url_path_for("Delete account"))
+
+        assert r.status_code == status.HTTP_401_UNAUTHORIZED

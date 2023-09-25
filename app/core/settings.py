@@ -13,3 +13,6 @@ class Settings(BaseSettings):
     @property
     def engine_url(self) -> str:
         return f"postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@database:5432/{self.POSTGRES_DB}"
+
+    SECRET_KEY: str
+    JWT_EXPIRATION_SECONDS: int
