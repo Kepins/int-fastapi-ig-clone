@@ -10,7 +10,7 @@ from ..schemas.user import User, UserCreate, UserResetPassword
 from ..core.security import Hasher
 
 
-def __get_not_deleted_db_user(db: Session, id: int) -> UserDB | None:
+def _get_not_deleted_db_user(db: Session, id: int) -> UserDB | None:
     return (
         db.query(UserDB).where(and_(UserDB.id == id, not_(UserDB.is_deleted))).first()
     )
@@ -38,7 +38,7 @@ def create_user(db: Session, user: UserCreate) -> User:
 
 
 def get_user_by_id(db: Session, id: int) -> User:
-    db_user = __get_not_deleted_db_user(db, id)
+    db_user = _get_not_deleted_db_user(db, id)
     if not db_user:
         raise NotFound()
     return User.model_validate(db_user)
@@ -56,7 +56,7 @@ def get_user_by_nickname(db: Session, nickname: str) -> User:
 
 
 def update_user(db: Session, user: User) -> User:
-    db_user = __get_not_deleted_db_user(db, user.id)
+    db_user = _get_not_deleted_db_user(db, user.id)
     if not db_user:
         raise NotFound()
     for field in user.model_dump():
@@ -68,7 +68,7 @@ def update_user(db: Session, user: User) -> User:
 
 
 def verify_password(db: Session, user: User, password: str):
-    db_user = __get_not_deleted_db_user(db, user.id)
+    db_user = _get_not_deleted_db_user(db, user.id)
     if not db_user:
         raise NotFound()
     if Hasher.verify_password(password, db_user.pass_hash):
@@ -77,7 +77,7 @@ def verify_password(db: Session, user: User, password: str):
 
 
 def reset_password(db: Session, user: User, passwords: UserResetPassword) -> None:
-    db_user = __get_not_deleted_db_user(db, user.id)
+    db_user = _get_not_deleted_db_user(db, user.id)
     if not db_user:
         raise NotFound()
     if not Hasher.verify_password(
@@ -91,7 +91,7 @@ def reset_password(db: Session, user: User, passwords: UserResetPassword) -> Non
 
 
 def delete_user_by_id(db: Session, id: int) -> None:
-    db_user = __get_not_deleted_db_user(db, id)
+    db_user = _get_not_deleted_db_user(db, id)
     if not db_user:
         raise NotFound()
     db_user.is_deleted = True

@@ -8,6 +8,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from .settings import Settings
+from ..services.user_service import get_user_by_id
+from ..services.exceptions import NotFound
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/account/login")
 
@@ -40,9 +42,6 @@ def get_current_user(
     settings: Annotated[Settings, Depends(get_settings)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    from ..services.user_service import get_user_by_id
-    from ..services.exceptions import NotFound
-
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
     except jwt.ExpiredSignatureError:
