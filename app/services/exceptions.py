@@ -1,3 +1,7 @@
+class CreateError(Exception):
+    pass
+
+
 class AlreadyExists(Exception):
     pass
 
