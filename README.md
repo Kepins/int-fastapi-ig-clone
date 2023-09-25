@@ -6,6 +6,12 @@
 3. user can see photos of other users
 4. user can like photo of other user
 
+## Running app
+```
+docker compose up
+```
+
+
 ## Running tests
 ```
 docker compose --env-file=test.env -f=docker-compose-test.yml up --build --abort-on-container-exit && docker compose -f=docker-compose-test.yml rm -fv
