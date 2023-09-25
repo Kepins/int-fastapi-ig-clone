@@ -27,6 +27,18 @@ class TestAccountUpdate:
         assert r.json()["first_name"] == new_data["first_name"]
         assert r.json()["last_name"] == new_data["last_name"]
 
+    def test_unauthenticated(self, app_test):
+        client = TestClient(app_test)
+        new_data = {
+            "first_name": "Jacek",
+            "last_name": " Kowalski",
+        }
+
+        r = client.put(app.url_path_for("Update account"), json=new_data)
+
+        # Test response
+        assert r.status_code == status.HTTP_401_UNAUTHORIZED
+
 
 class TestAccountLogin:
     def test_login(self, app_test):
@@ -64,6 +76,17 @@ class TestAccountResetPassword:
 
         assert r.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_unauthenticated(self, app_test):
+        client = TestClient(app_test)
+        passwords = {
+            "old_password": "password1234",
+            "new_password": " Password1234",
+        }
+
+        r = client.post(app.url_path_for("Reset account password"), json=passwords)
+
+        assert r.status_code == status.HTTP_401_UNAUTHORIZED
+
 
 class TestAccountDelete:
     def test_delete(self, app_test):
@@ -76,3 +99,10 @@ class TestAccountDelete:
         r = client.delete(app.url_path_for("Delete account"))
 
         assert r.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_unauthenticated(self, app_test):
+        client = TestClient(app_test)
+
+        r = client.delete(app.url_path_for("Delete account"))
+
+        assert r.status_code == status.HTTP_401_UNAUTHORIZED
