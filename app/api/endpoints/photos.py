@@ -1,6 +1,7 @@
 from typing import Annotated, List
 
 from fastapi import Depends, UploadFile, Form, File, HTTPException, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from ...core.dependencies import get_db, get_file_repository, get_current_user
@@ -55,9 +56,28 @@ def get_metadata(id: int, db: Annotated[Session, Depends(get_db)]) -> Photo:
         )
 
 
-@router.get("/{id:int}/file", name="Get photo file")
-def get_data(id: int, db: Annotated[Session, Depends(get_db)]):
-    pass
+@router.get(
+    "/{id:int}/file",
+    name="Get photo file",
+    response_class=FileResponse,
+    responses={status.HTTP_404_NOT_FOUND: {"model": HTTPError}},
+)
+def get_data(
+    id: int,
+    db: Annotated[Session, Depends(get_db)],
+    file_repository: Annotated[FileRepository, Depends(get_file_repository)],
+):
+    try:
+        return FileResponse(photo_service.get_photo_filepath(db, file_repository, id))
+    except NotFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Photo Not Found"
+        )
+    except ServiceError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="The storage service encountered an error.",
+        )
 
 
 @router.put(

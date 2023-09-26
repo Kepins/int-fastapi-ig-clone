@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 from fastapi import UploadFile
@@ -5,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from .exceptions import ServiceError, NotFound, NotResourceOwner
 from ..db.models import PhotoDB
-from ..repositories.exceptions import WriteError, DeleteError
+from ..repositories.exceptions import WriteError, DeleteError, ReadError
 from ..repositories.file_repository import FileRepository
 from ..schemas.photo import PhotoCreate, Photo, PhotoUpdate
 from ..schemas.user import User
@@ -44,6 +45,18 @@ def get_photo_metadata(db: Session, id: int) -> Photo:
     if not db_photo:
         raise NotFound()
     return Photo.model_validate(db_photo)
+
+
+def get_photo_filepath(
+    db: Session, file_repository: FileRepository, id: int
+) -> os.PathLike | str:
+    db_photo = db.get(PhotoDB, id)
+    if not db_photo:
+        raise NotFound()
+    try:
+        return file_repository.get_file_path(id)
+    except ReadError:
+        raise ServiceError()
 
 
 def get_photo_metadata_if_owner(db: Session, id: int, claimed_owner: User) -> Photo:

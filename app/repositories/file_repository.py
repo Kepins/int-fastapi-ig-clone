@@ -4,7 +4,7 @@ from pathlib import Path
 
 from fastapi import UploadFile
 
-from .exceptions import WriteError, DeleteError
+from .exceptions import WriteError, DeleteError, ReadError
 
 
 class FileRepository:
@@ -26,6 +26,13 @@ class FileRepository:
         except OSError as e:
             print(e)
             raise WriteError()
+
+    def get_file_path(self, id: int):
+        path = Path(self.directory)
+        for file_path in path.glob("*"):
+            if file_path.stem == str(id):
+                return file_path
+        raise ReadError()
 
     def delete_file(self, id: int):
         path = Path(self.directory)
