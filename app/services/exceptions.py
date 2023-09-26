@@ -12,3 +12,7 @@ class NotFound(Exception):
 
 class PasswordNotMatching(Exception):
     pass
+
+
+class NotResourceOwner(Exception):
+    pass

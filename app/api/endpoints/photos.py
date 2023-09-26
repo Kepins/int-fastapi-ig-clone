@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 
 from fastapi import Depends, UploadFile, Form, File, HTTPException, status
 from sqlalchemy.orm import Session
@@ -6,15 +6,16 @@ from sqlalchemy.orm import Session
 from ...core.dependencies import get_db, get_file_repository, get_current_user
 from ...repositories.file_repository import FileRepository
 from ...routers.photos import router
-from ...schemas.photo import PhotoCreate, Photo
+from ...schemas.photo import PhotoCreate, Photo, PhotoUpdate
+from ...schemas.shared import HTTPError
 from ...schemas.user import User
 from ...services import photo_service
-from ...services.exceptions import CreateError
+from ...services.exceptions import CreateError, NotFound, NotResourceOwner
 
 
 @router.get("/", name="Get photos metadata")
-def get_list_metadata(db: Annotated[Session, Depends(get_db)]):
-    pass
+def get_list_metadata(db: Annotated[Session, Depends(get_db)]) -> List[Photo]:
+    return photo_service.get_all_photos_metadata(db)
 
 
 @router.post(
@@ -29,18 +30,29 @@ def create(
     file_repository: Annotated[FileRepository, Depends(get_file_repository)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Photo:
-    photo_create = PhotoCreate(description=description, id_owner=user.id)
+    photo_create = PhotoCreate(description=description)
 
     try:
-        photo = photo_service.create_photo(db, file_repository, photo_create, file)
+        photo = photo_service.create_photo(
+            db, file_repository, photo_create, user, file
+        )
     except CreateError:
         raise HTTPException(status_code=503, detail="Service Unavailable")
     return photo
 
 
-@router.get("/{id:int}", name="Get photo metadata")
-def get_metadata(id: int, db: Annotated[Session, Depends(get_db)]):
-    pass
+@router.get(
+    "/{id:int}",
+    name="Get photo metadata",
+    responses={status.HTTP_404_NOT_FOUND: {"model": HTTPError}},
+)
+def get_metadata(id: int, db: Annotated[Session, Depends(get_db)]) -> Photo:
+    try:
+        return photo_service.get_photo_metadata(db, id)
+    except NotFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Photo Not Found"
+        )
 
 
 @router.get("/{id:int}/file", name="Get photo file")
@@ -48,9 +60,30 @@ def get_data(id: int, db: Annotated[Session, Depends(get_db)]):
     pass
 
 
-@router.put("/{id:int}", name="Update photo metadata")
-def update(id: int, db: Annotated[Session, Depends(get_db)]):
-    pass
+@router.put(
+    "/{id:int}",
+    name="Update photo metadata",
+    responses={
+        status.HTTP_403_FORBIDDEN: {"model": HTTPError},
+        status.HTTP_404_NOT_FOUND: {"model": HTTPError},
+    },
+)
+def update(
+    new_photo: PhotoUpdate,
+    id: int,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> Photo:
+    try:
+        return photo_service.update_photo_metadata(db, id, new_photo, user)
+    except NotFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Photo Not Found"
+        )
+    except NotResourceOwner:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not Authorized"
+        )
 
 
 @router.put("/{id:int}/file", name="Update photo file")
