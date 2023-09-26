@@ -10,7 +10,7 @@ from ...schemas.photo import PhotoCreate, Photo, PhotoUpdate
 from ...schemas.shared import HTTPError
 from ...schemas.user import User
 from ...services import photo_service
-from ...services.exceptions import CreateError, NotFound, NotResourceOwner
+from ...services.exceptions import ServiceError, NotFound, NotResourceOwner
 
 
 @router.get("/", name="Get photos metadata")
@@ -36,7 +36,7 @@ def create(
         photo = photo_service.create_photo(
             db, file_repository, photo_create, user, file
         )
-    except CreateError:
+    except ServiceError:
         raise HTTPException(status_code=503, detail="Service Unavailable")
     return photo
 
@@ -91,6 +91,32 @@ def update_data(id: int, db: Annotated[Session, Depends(get_db)]):
     pass
 
 
-@router.delete("/{id:int}", name="Delete photo")
-def delete(id: int, db: Annotated[Session, Depends(get_db)]):
-    pass
+@router.delete(
+    "/{id:int}",
+    name="Delete photo",
+    responses={
+        status.HTTP_403_FORBIDDEN: {"model": HTTPError},
+        status.HTTP_404_NOT_FOUND: {"model": HTTPError},
+    },
+)
+def delete(
+    id: int,
+    db: Annotated[Session, Depends(get_db)],
+    file_repository: Annotated[FileRepository, Depends(get_file_repository)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    try:
+        photo_service.delete_photo(db, file_repository, id, user)
+    except NotFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Photo Not Found"
+        )
+    except NotResourceOwner:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not Authorized"
+        )
+    except ServiceError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="The storage service encountered an error.",
+        )

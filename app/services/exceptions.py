@@ -1,4 +1,4 @@
-class CreateError(Exception):
+class ServiceError(Exception):
     pass
 
 
