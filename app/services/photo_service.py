@@ -86,6 +86,29 @@ def update_photo_metadata(
     return Photo.model_validate(db_photo)
 
 
+def update_photo_file(
+    db: Session,
+    file_repository: FileRepository,
+    id: int,
+    claimed_owner: User,
+    file: UploadFile,
+) -> Photo:
+    db_photo = db.get(PhotoDB, id)
+    if not db_photo:
+        raise NotFound()
+    if db_photo.id_owner != claimed_owner.id:
+        raise NotResourceOwner()
+    try:
+        file_repository.update_file(id, file)
+    except DeleteError:
+        raise ServiceError()
+    except WriteError:
+        # This should never happen but if it does the file is deleted and no new file is created
+        raise ServiceError()
+
+    return Photo.model_validate(db_photo)
+
+
 def delete_photo(
     db: Session, file_repository: FileRepository, id: int, claimed_owner: User
 ) -> None:

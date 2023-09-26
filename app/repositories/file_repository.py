@@ -27,6 +27,10 @@ class FileRepository:
             print(e)
             raise WriteError()
 
+    def update_file(self, id: int, file: UploadFile):
+        self.delete_file(id)
+        self.save_file(id, file)
+
     def get_file_path(self, id: int):
         path = Path(self.directory)
         for file_path in path.glob("*"):
