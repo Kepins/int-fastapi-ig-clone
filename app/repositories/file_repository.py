@@ -25,6 +25,3 @@ class FileRepository:
         except OSError as e:
             print(e)
             raise WriteError()
-
-
-

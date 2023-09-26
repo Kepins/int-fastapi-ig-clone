@@ -38,7 +38,9 @@ def get_db(settings: Annotated[Settings, Depends(get_settings)]) -> Session:
         db_session.remove()
 
 
-def get_file_repository(settings: Annotated[Settings, Depends(get_settings)]) -> FileRepository:
+def get_file_repository(
+    settings: Annotated[Settings, Depends(get_settings)]
+) -> FileRepository:
     return FileRepository(directory=settings.FILE_DIRECTORY)
 
 

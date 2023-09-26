@@ -12,7 +12,9 @@ def get_all_photos_metadata(db: Session):
     pass
 
 
-def create_photo(db: Session, file_repository: FileRepository, photo: PhotoCreate, file: UploadFile) -> Photo:
+def create_photo(
+    db: Session, file_repository: FileRepository, photo: PhotoCreate, file: UploadFile
+) -> Photo:
     db_photo = PhotoDB(**photo.model_dump())
     db.add(db_photo)
     db.flush()
@@ -27,5 +29,3 @@ def create_photo(db: Session, file_repository: FileRepository, photo: PhotoCreat
         raise CreateError()
 
     return Photo.model_validate(db_photo)
-
-
