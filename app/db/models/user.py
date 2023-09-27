@@ -5,6 +5,7 @@ from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
+from .like import likes_association
 from .photo import PhotoDB
 
 
@@ -23,6 +24,8 @@ class UserDB(Base):
     photos: Mapped[List["PhotoDB"]] = relationship(
         back_populates="owner", primaryjoin=lambda: UserDB.id == PhotoDB.id_owner
     )
+
+    liked_photos = relationship('PhotoDB', secondary=likes_association, back_populates='likers')
 
     def __repr__(self) -> str:
         return f"User(id={self.id!r})"
