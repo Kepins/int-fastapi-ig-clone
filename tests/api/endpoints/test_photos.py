@@ -116,3 +116,28 @@ class TestUpdateMetadata:
 
         assert r.status_code == status.HTTP_403_FORBIDDEN
 
+
+class TestCreatePhoto:
+    def test_create(self, app_test, test_file_jpg):
+        user = UserDBFactory()
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
+            user
+        )
+        client = TestClient(app_test)
+        data = {
+            "description": "Description",
+        }
+
+        r = client.post(app.url_path_for("Upload photo"), data=data, files={"file": test_file_jpg})
+
+        assert r.status_code == status.HTTP_201_CREATED
+
+    def test_unauthenticated(self, app_test, test_file_jpg):
+        client = TestClient(app_test)
+        data = {
+            "description": "Description",
+        }
+
+        r = client.post(app.url_path_for("Upload photo"), data=data, files={"file": test_file_jpg})
+
+        assert r.status_code == status.HTTP_401_UNAUTHORIZED

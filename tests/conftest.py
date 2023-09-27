@@ -39,3 +39,9 @@ def app_test():
     app.dependency_overrides[get_db] = get_db_test
     yield app
     app.dependency_overrides = {}
+
+
+@pytest.fixture(scope="module")
+def test_file_jpg():
+    with open("tests/test_pictures/pict.jpg", mode='rb') as file:
+        return "pict.jpg", file.read()
