@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from app.core.dependencies import get_current_user
 from app.main import app
+from app.schemas.photo import Photo
 from app.schemas.user import User
 from ...factories import PhotoDBFactory, UserDBFactory
 
@@ -169,3 +170,62 @@ class TestDelete:
         r = client.delete(app.url_path_for("Delete photo", id=photo.id))
 
         assert r.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+class TestGetFile:
+    @mock.patch("app.api.endpoints.photos.photo_service.get_photo_filepath")
+    def test_get(self, get_photo_filepath_mock, app_test):
+        get_photo_filepath_mock.return_value = "tests/test_pictures/pict.jpg"
+        client = TestClient(app_test)
+
+        photo = PhotoDBFactory()
+
+        r = client.get(app.url_path_for("Get photo file", id=photo.id))
+
+        assert r.status_code == status.HTTP_200_OK
+
+    def test_not_found(self, app_test):
+        client = TestClient(app_test)
+
+        r = client.get(app.url_path_for("Get photo file", id=1))
+
+        assert r.status_code == status.HTTP_404_NOT_FOUND
+
+
+class TestUpdateFile:
+    @mock.patch("app.api.endpoints.photos.photo_service.update_photo_file")
+    def test_update(self, update_photo_file_mock, app_test, test_file_jpg):
+        user = UserDBFactory()
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
+            user
+        )
+        client = TestClient(app_test)
+
+        photo = PhotoDBFactory(owner=user)
+        update_photo_file_mock.return_value = Photo.model_validate(photo)
+
+        r = client.put(app.url_path_for("Update photo file", id=photo.id), files={"file": test_file_jpg})
+
+        assert r.status_code == status.HTTP_200_OK
+
+    def test_unauthenticated(self, app_test, test_file_jpg):
+        client = TestClient(app_test)
+
+        photo = PhotoDBFactory()
+
+        r = client.put(app.url_path_for("Update photo file", id=photo.id), files={"file": test_file_jpg})
+
+        assert r.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_authorized(self, app_test, test_file_jpg):
+        user = UserDBFactory()
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
+            user
+        )
+        client = TestClient(app_test)
+
+        photo = PhotoDBFactory()
+
+        r = client.put(app.url_path_for("Update photo file", id=photo.id), files={"file": test_file_jpg})
+
+        assert r.status_code == status.HTTP_403_FORBIDDEN
