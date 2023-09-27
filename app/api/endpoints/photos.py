@@ -141,6 +141,7 @@ def update_data(
 @router.delete(
     "/{id:int}",
     name="Delete photo",
+    status_code=status.HTTP_204_NO_CONTENT,
     responses={
         status.HTTP_403_FORBIDDEN: {"model": HTTPError},
         status.HTTP_404_NOT_FOUND: {"model": HTTPError},

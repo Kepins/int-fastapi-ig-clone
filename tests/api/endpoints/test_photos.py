@@ -1,3 +1,5 @@
+from unittest import mock
+
 from fastapi import status
 from fastapi.testclient import TestClient
 
@@ -117,7 +119,7 @@ class TestUpdateMetadata:
         assert r.status_code == status.HTTP_403_FORBIDDEN
 
 
-class TestCreatePhoto:
+class TestCreate:
     def test_create(self, app_test, test_file_jpg):
         user = UserDBFactory()
         app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
@@ -139,5 +141,31 @@ class TestCreatePhoto:
         }
 
         r = client.post(app.url_path_for("Upload photo"), data=data, files={"file": test_file_jpg})
+
+        assert r.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+class TestDelete:
+    @mock.patch("app.api.endpoints.photos.photo_service.delete_photo")
+    def test_delete(self, delete_photo_mock, app_test):
+        user = UserDBFactory()
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
+            user
+        )
+        delete_photo_mock.return_value = None
+        client = TestClient(app_test)
+
+        photo = PhotoDBFactory(owner=user)
+
+        r = client.delete(app.url_path_for("Delete photo", id=photo.id))
+
+        assert r.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_unauthorized(self, app_test):
+        client = TestClient(app_test)
+
+        photo = PhotoDBFactory()
+
+        r = client.delete(app.url_path_for("Delete photo", id=photo.id))
 
         assert r.status_code == status.HTTP_401_UNAUTHORIZED
