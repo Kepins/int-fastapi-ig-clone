@@ -16,7 +16,9 @@ class PhotoDB(Base):
         back_populates="photos", foreign_keys=[id_owner]
     )
 
-    likers = relationship('UserDB', secondary=likes_association, back_populates='liked_photos')
+    likers = relationship(
+        "UserDB", secondary=likes_association, back_populates="liked_photos"
+    )
 
     def __repr__(self) -> str:
         return f"Photo(id={self.id!r})"

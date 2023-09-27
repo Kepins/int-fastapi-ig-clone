@@ -25,7 +25,9 @@ class UserDB(Base):
         back_populates="owner", primaryjoin=lambda: UserDB.id == PhotoDB.id_owner
     )
 
-    liked_photos = relationship('PhotoDB', secondary=likes_association, back_populates='likers')
+    liked_photos = relationship(
+        "PhotoDB", secondary=likes_association, back_populates="likers"
+    )
 
     def __repr__(self) -> str:
         return f"User(id={self.id!r})"

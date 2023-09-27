@@ -8,4 +8,3 @@ likes_association = Table(
     Column("user_id", ForeignKey("user.id"), primary_key=True),
     Column("photo_id", ForeignKey("photo.id"), primary_key=True),
 )
-

@@ -72,7 +72,9 @@ class TestUpdateMetadata:
 
         photo = PhotoDBFactory(owner=user)
 
-        r = client.put(app.url_path_for("Update photo metadata", id=photo.id), json=new_data)
+        r = client.put(
+            app.url_path_for("Update photo metadata", id=photo.id), json=new_data
+        )
 
         assert r.status_code == status.HTTP_200_OK
         assert r.json()["description"] == new_data["description"]
@@ -99,7 +101,9 @@ class TestUpdateMetadata:
 
         photo = PhotoDBFactory()
 
-        r = client.put(app.url_path_for("Update photo metadata", id=photo.id), json=new_data)
+        r = client.put(
+            app.url_path_for("Update photo metadata", id=photo.id), json=new_data
+        )
 
         assert r.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -115,7 +119,9 @@ class TestUpdateMetadata:
 
         photo = PhotoDBFactory()
 
-        r = client.put(app.url_path_for("Update photo metadata", id=photo.id), json=new_data)
+        r = client.put(
+            app.url_path_for("Update photo metadata", id=photo.id), json=new_data
+        )
 
         assert r.status_code == status.HTTP_403_FORBIDDEN
 
@@ -131,7 +137,9 @@ class TestCreate:
             "description": "Description",
         }
 
-        r = client.post(app.url_path_for("Upload photo"), data=data, files={"file": test_file_jpg})
+        r = client.post(
+            app.url_path_for("Upload photo"), data=data, files={"file": test_file_jpg}
+        )
 
         assert r.status_code == status.HTTP_201_CREATED
 
@@ -141,7 +149,9 @@ class TestCreate:
             "description": "Description",
         }
 
-        r = client.post(app.url_path_for("Upload photo"), data=data, files={"file": test_file_jpg})
+        r = client.post(
+            app.url_path_for("Upload photo"), data=data, files={"file": test_file_jpg}
+        )
 
         assert r.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -204,7 +214,10 @@ class TestUpdateFile:
         photo = PhotoDBFactory(owner=user)
         update_photo_file_mock.return_value = Photo.model_validate(photo)
 
-        r = client.put(app.url_path_for("Update photo file", id=photo.id), files={"file": test_file_jpg})
+        r = client.put(
+            app.url_path_for("Update photo file", id=photo.id),
+            files={"file": test_file_jpg},
+        )
 
         assert r.status_code == status.HTTP_200_OK
 
@@ -213,7 +226,10 @@ class TestUpdateFile:
 
         photo = PhotoDBFactory()
 
-        r = client.put(app.url_path_for("Update photo file", id=photo.id), files={"file": test_file_jpg})
+        r = client.put(
+            app.url_path_for("Update photo file", id=photo.id),
+            files={"file": test_file_jpg},
+        )
 
         assert r.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -226,6 +242,9 @@ class TestUpdateFile:
 
         photo = PhotoDBFactory()
 
-        r = client.put(app.url_path_for("Update photo file", id=photo.id), files={"file": test_file_jpg})
+        r = client.put(
+            app.url_path_for("Update photo file", id=photo.id),
+            files={"file": test_file_jpg},
+        )
 
         assert r.status_code == status.HTTP_403_FORBIDDEN

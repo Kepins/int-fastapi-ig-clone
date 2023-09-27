@@ -43,5 +43,5 @@ def app_test():
 
 @pytest.fixture(scope="module")
 def test_file_jpg():
-    with open("tests/test_pictures/pict.jpg", mode='rb') as file:
+    with open("tests/test_pictures/pict.jpg", mode="rb") as file:
         return "pict.jpg", file.read()

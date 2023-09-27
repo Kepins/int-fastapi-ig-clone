@@ -11,7 +11,12 @@ from ...schemas.photo import PhotoCreate, Photo, PhotoUpdate
 from ...schemas.shared import HTTPError
 from ...schemas.user import User
 from ...services import photo_service
-from ...services.exceptions import ServiceError, NotFound, NotResourceOwner
+from ...services.exceptions import (
+    ServiceError,
+    NotFound,
+    NotResourceOwner,
+    AlreadyExists,
+)
 
 
 @router.get("/", name="Get photos metadata")
@@ -23,6 +28,9 @@ def get_list_metadata(db: Annotated[Session, Depends(get_db)]) -> List[Photo]:
     "/",
     name="Upload photo",
     status_code=status.HTTP_201_CREATED,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"model": HTTPError},
+    },
 )
 def create(
     file: Annotated[UploadFile, File()],
@@ -84,6 +92,7 @@ def get_data(
     "/{id:int}",
     name="Update photo metadata",
     responses={
+        status.HTTP_401_UNAUTHORIZED: {"model": HTTPError},
         status.HTTP_403_FORBIDDEN: {"model": HTTPError},
         status.HTTP_404_NOT_FOUND: {"model": HTTPError},
     },
@@ -110,6 +119,7 @@ def update(
     "/{id:int}/file",
     name="Update photo file",
     responses={
+        status.HTTP_401_UNAUTHORIZED: {"model": HTTPError},
         status.HTTP_403_FORBIDDEN: {"model": HTTPError},
         status.HTTP_404_NOT_FOUND: {"model": HTTPError},
     },
@@ -143,6 +153,7 @@ def update_data(
     name="Delete photo",
     status_code=status.HTTP_204_NO_CONTENT,
     responses={
+        status.HTTP_401_UNAUTHORIZED: {"model": HTTPError},
         status.HTTP_403_FORBIDDEN: {"model": HTTPError},
         status.HTTP_404_NOT_FOUND: {"model": HTTPError},
     },
@@ -168,3 +179,48 @@ def delete(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="The storage service encountered an error.",
         )
+
+
+@router.post(
+    "/{id:int}/like",
+    name="Like",
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"model": HTTPError},
+        status.HTTP_404_NOT_FOUND: {"model": HTTPError},
+        status.HTTP_409_CONFLICT: {"model": HTTPError},
+    },
+)
+def like(
+    id: int,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    try:
+        photo_service.like(db, id, user)
+    except NotFound as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except AlreadyExists:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Photo Already Liked"
+        )
+
+
+@router.delete(
+    "/{id:int}/like",
+    name="Dislike",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"model": HTTPError},
+        status.HTTP_404_NOT_FOUND: {"model": HTTPError},
+    },
+)
+def dislike(
+    id: int,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    try:
+        photo_service.dislike(db, id, user)
+    except NotFound as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

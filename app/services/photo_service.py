@@ -2,10 +2,12 @@ import os
 from typing import List
 
 from fastapi import UploadFile
+from sqlalchemy import select, and_
 from sqlalchemy.orm import Session
 
-from .exceptions import ServiceError, NotFound, NotResourceOwner
-from ..db.models import PhotoDB
+from .exceptions import ServiceError, NotFound, NotResourceOwner, AlreadyExists
+from ..db.models import PhotoDB, UserDB
+from ..db.models.like import likes_association
 from ..repositories.exceptions import WriteError, DeleteError, ReadError
 from ..repositories.file_repository import FileRepository
 from ..schemas.photo import PhotoCreate, Photo, PhotoUpdate
@@ -123,3 +125,25 @@ def delete_photo(
     except DeleteError:
         raise ServiceError()
     db.delete(db_photo)
+
+
+def like(db: Session, id, user: User):
+    db_photo = db.get(PhotoDB, id)
+    if not db_photo:
+        raise NotFound("Photo Not Found")
+
+    db_user = db.get(UserDB, user.id)
+    if db_photo in db_user.liked_photos:
+        raise AlreadyExists()
+    db_user.liked_photos.append(db_photo)
+
+
+def dislike(db: Session, id, user: User):
+    db_photo = db.get(PhotoDB, id)
+    if not db_photo:
+        raise NotFound("Photo Not Found")
+
+    db_user = db.get(UserDB, user.id)
+    if db_photo not in db_user.liked_photos:
+        raise NotFound("Photo Not Liked")
+    db_user.liked_photos.remove(db_photo)
