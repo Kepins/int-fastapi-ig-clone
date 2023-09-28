@@ -72,7 +72,9 @@ class TestUpdateMetadata:
 
         photo = PhotoDBFactory(owner=user)
 
-        r = client.put(app.url_path_for("Update photo metadata", id=photo.id), json=new_data)
+        r = client.put(
+            app.url_path_for("Update photo metadata", id=photo.id), json=new_data
+        )
 
         assert r.status_code == status.HTTP_200_OK
         assert r.json()["description"] == new_data["description"]
@@ -99,7 +101,9 @@ class TestUpdateMetadata:
 
         photo = PhotoDBFactory()
 
-        r = client.put(app.url_path_for("Update photo metadata", id=photo.id), json=new_data)
+        r = client.put(
+            app.url_path_for("Update photo metadata", id=photo.id), json=new_data
+        )
 
         assert r.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -115,7 +119,9 @@ class TestUpdateMetadata:
 
         photo = PhotoDBFactory()
 
-        r = client.put(app.url_path_for("Update photo metadata", id=photo.id), json=new_data)
+        r = client.put(
+            app.url_path_for("Update photo metadata", id=photo.id), json=new_data
+        )
 
         assert r.status_code == status.HTTP_403_FORBIDDEN
 
@@ -131,7 +137,9 @@ class TestCreate:
             "description": "Description",
         }
 
-        r = client.post(app.url_path_for("Upload photo"), data=data, files={"file": test_file_jpg})
+        r = client.post(
+            app.url_path_for("Upload photo"), data=data, files={"file": test_file_jpg}
+        )
 
         assert r.status_code == status.HTTP_201_CREATED
 
@@ -141,7 +149,9 @@ class TestCreate:
             "description": "Description",
         }
 
-        r = client.post(app.url_path_for("Upload photo"), data=data, files={"file": test_file_jpg})
+        r = client.post(
+            app.url_path_for("Upload photo"), data=data, files={"file": test_file_jpg}
+        )
 
         assert r.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -204,7 +214,10 @@ class TestUpdateFile:
         photo = PhotoDBFactory(owner=user)
         update_photo_file_mock.return_value = Photo.model_validate(photo)
 
-        r = client.put(app.url_path_for("Update photo file", id=photo.id), files={"file": test_file_jpg})
+        r = client.put(
+            app.url_path_for("Update photo file", id=photo.id),
+            files={"file": test_file_jpg},
+        )
 
         assert r.status_code == status.HTTP_200_OK
 
@@ -213,7 +226,10 @@ class TestUpdateFile:
 
         photo = PhotoDBFactory()
 
-        r = client.put(app.url_path_for("Update photo file", id=photo.id), files={"file": test_file_jpg})
+        r = client.put(
+            app.url_path_for("Update photo file", id=photo.id),
+            files={"file": test_file_jpg},
+        )
 
         assert r.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -226,6 +242,125 @@ class TestUpdateFile:
 
         photo = PhotoDBFactory()
 
-        r = client.put(app.url_path_for("Update photo file", id=photo.id), files={"file": test_file_jpg})
+        r = client.put(
+            app.url_path_for("Update photo file", id=photo.id),
+            files={"file": test_file_jpg},
+        )
 
         assert r.status_code == status.HTTP_403_FORBIDDEN
+
+
+class TestLike:
+    def test_like(self, app_test):
+        user = UserDBFactory()
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
+            user
+        )
+        client = TestClient(app_test)
+
+        photo = PhotoDBFactory()
+
+        r = client.post(
+            app.url_path_for("Like", id=photo.id),
+        )
+
+        assert r.status_code == status.HTTP_200_OK
+
+    def test_like_already_liked(self, app_test):
+        user = UserDBFactory()
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
+            user
+        )
+        client = TestClient(app_test)
+
+        photo = PhotoDBFactory()
+
+        user.liked_photos.append(photo)
+
+        r = client.post(
+            app.url_path_for("Like", id=photo.id),
+        )
+
+        assert r.status_code == status.HTTP_409_CONFLICT
+
+    def test_photo_not_found(self, app_test):
+        user = UserDBFactory()
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
+            user
+        )
+        client = TestClient(app_test)
+
+        r = client.post(
+            app.url_path_for("Like", id=1),
+        )
+
+        assert r.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_unauthorized(self, app_test):
+        client = TestClient(app_test)
+
+        photo = PhotoDBFactory()
+
+        r = client.post(
+            app.url_path_for("Like", id=photo.id),
+        )
+
+        assert r.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+class TestDislike:
+    def test_dislike(self, app_test):
+        user = UserDBFactory()
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
+            user
+        )
+        client = TestClient(app_test)
+
+        photo = PhotoDBFactory()
+
+        user.liked_photos.append(photo)
+
+        r = client.delete(
+            app.url_path_for("Dislike", id=photo.id),
+        )
+
+        assert r.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_dislike_not_liked(self, app_test):
+        user = UserDBFactory()
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
+            user
+        )
+        client = TestClient(app_test)
+
+        photo = PhotoDBFactory()
+
+        r = client.delete(
+            app.url_path_for("Dislike", id=photo.id),
+        )
+
+        assert r.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_photo_not_found(self, app_test):
+        user = UserDBFactory()
+        app_test.dependency_overrides[get_current_user] = lambda: User.model_validate(
+            user
+        )
+        client = TestClient(app_test)
+
+        r = client.delete(
+            app.url_path_for("Dislike", id=1),
+        )
+
+        assert r.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_unauthorized(self, app_test):
+        client = TestClient(app_test)
+
+        photo = PhotoDBFactory()
+
+        r = client.delete(
+            app.url_path_for("Dislike", id=photo.id),
+        )
+
+        assert r.status_code == status.HTTP_401_UNAUTHORIZED
