@@ -16,3 +16,6 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str
     JWT_EXPIRATION_SECONDS: int
+
+    # Directory with photos
+    FILE_DIRECTORY: str

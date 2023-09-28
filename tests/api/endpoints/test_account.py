@@ -47,7 +47,7 @@ class TestAccountLogin:
         client = TestClient(app_test)
         form_data = {
             "username": user.nickname,
-            "password": "password123"
+            "password": "password123",
         }
         r = client.post(app.url_path_for("Login to account"), data=form_data)
 
@@ -60,7 +60,7 @@ class TestAccountLogin:
         client = TestClient(app_test)
         form_data = {
             "username": user.nickname,
-            "password": "password124"
+            "password": "password124",
         }
         r = client.post(app.url_path_for("Login to account"), data=form_data)
 

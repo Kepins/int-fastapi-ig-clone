@@ -1,1 +1,1 @@
-from . import status, users, account
+from . import status, users, account, photos

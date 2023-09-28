@@ -34,7 +34,7 @@ def create(user: UserCreate, db: Annotated[Session, Depends(get_db)]) -> User:
 @router.get(
     "/{id:int}",
     name="Get user",
-    responses={status.HTTP_404_NOT_FOUND: {}},
+    responses={status.HTTP_404_NOT_FOUND: {"model": HTTPError}},
 )
 def get(id: int, db: Annotated[Session, Depends(get_db)]) -> User:
     try:

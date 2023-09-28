@@ -8,6 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from .settings import Settings
+from ..repositories.file_repository import FileRepository
 from ..services.user_service import get_user_by_id
 from ..services.exceptions import NotFound
 
@@ -35,6 +36,12 @@ def get_db(settings: Annotated[Settings, Depends(get_settings)]) -> Session:
     finally:
         db_session.commit()
         db_session.remove()
+
+
+def get_file_repository(
+    settings: Annotated[Settings, Depends(get_settings)]
+) -> FileRepository:
+    return FileRepository(directory=settings.FILE_DIRECTORY)
 
 
 def get_current_user(

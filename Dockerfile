@@ -8,6 +8,9 @@ ENV PYTHONUNBUFFERED 1
 # Create a directory to hold application code
 RUN mkdir -p /home/app/code
 
+# Create a directory to hold uploaded photos
+RUN mkdir -p /home/app/photos
+
 # Set work directory
 WORKDIR /home/app/code
 

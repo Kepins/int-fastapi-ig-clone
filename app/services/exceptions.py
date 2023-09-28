@@ -1,3 +1,7 @@
+class ServiceError(Exception):
+    pass
+
+
 class AlreadyExists(Exception):
     pass
 
@@ -7,4 +11,8 @@ class NotFound(Exception):
 
 
 class PasswordNotMatching(Exception):
+    pass
+
+
+class NotResourceOwner(Exception):
     pass

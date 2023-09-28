@@ -1,10 +1,11 @@
 import datetime
-from typing import Optional
+from typing import Optional, List
 
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
+from .photo import PhotoDB
 
 
 class UserDB(Base):
@@ -18,6 +19,10 @@ class UserDB(Base):
     pass_hash: Mapped[str] = mapped_column(String(200))
     is_deleted: Mapped[bool] = mapped_column(default=False)
     deletion_date: Mapped[Optional[datetime.datetime]] = mapped_column(default=None)
+
+    photos: Mapped[List["PhotoDB"]] = relationship(
+        back_populates="owner", primaryjoin=lambda: UserDB.id == PhotoDB.id_owner
+    )
 
     def __repr__(self) -> str:
         return f"User(id={self.id!r})"
